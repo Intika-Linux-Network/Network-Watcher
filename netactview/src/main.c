@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
         nactv_net_init();
 
         window = main_window_create();
-        // gtk_widget_show(window);
+        gtk_widget_show(window);
         g_signal_connect(window, "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
         
         toggled_AutoRefreshEnabled(1);

@@ -1928,6 +1928,124 @@ static void on_menuEdit_activate (GtkMenuItem *menuItem, gpointer userdata)
 	gtk_widget_set_sensitive(glade_xml_get_widget(GladeXml, "menuCopyHost"), item_selected);
 }
 
+static void on_menuKill_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	if (Mwd.last_popup_column == NULL)
+		return;
+
+	int columns[] = { MVC_PID };
+	GString *text;
+	text = get_selected_lines_column_text_4copy(columns, 1);
+	if ((text != NULL) && (strcmp(text->str,"")))
+	{
+        char command[200] = "kill -9 ";        
+        strcat(command, text->str);
+
+		printf("Executing: %s\n",command);       
+		system(command);
+        
+        g_string_free(text, TRUE);
+	} else {g_string_free(text, TRUE);}
+    
+}
+
+static void on_menuDisconnect_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	if (Mwd.last_popup_column == NULL)
+		return;
+
+	int columns[] = { MVC_PID };
+	GString *text;
+	text = get_selected_lines_column_text_4copy(columns, 1);
+	if ((text != NULL) && (strcmp(text->str,"")))
+	{
+        //TMPVAR="gdb -p 20583 --batch";
+        //CONLIST=$(lsof -i6 -ai4 -an -ap 20583 -aT -aP -aFf 2>/dev/null | tail -n +2 | cut -c 2-);
+        //for word in $CONLIST; do TMPVAR=$TMPVAR" -ex 'call close($word)'"; done; sh -c "$TMPVAR";
+
+        char command[2000] = "TMPVAR=\"gdb -p ";
+        strcat(command, text->str);
+        strcat(command, " --batch\"; CONLIST=$(lsof -i6 -ai4 -an -ap ");
+        strcat(command, text->str);
+        strcat(command, " -aT -aP -aFf 2>/dev/null | tail -n +2 | cut -c 2-); for word in $CONLIST; do TMPVAR=$TMPVAR\" -ex 'call close($word)'\"; done; sh -c \"$TMPVAR\";");
+
+		printf("Executing: %s\n",command);       
+		system(command);
+        
+        g_string_free(text, TRUE);
+	} else {g_string_free(text, TRUE);}
+}
+
+static void on_menuTomoyoAllow_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	if (Mwd.last_popup_column == NULL)
+		return;
+
+	int columns[] = { MVC_PID };
+	GString *text;
+	text = get_selected_lines_column_text_4copy(columns, 1);
+	if ((text != NULL) && (strcmp(text->str,"")))
+	{
+        //ccs-pstree | grep 20583 | awk '{$1=$2=$3=$4=""; print $0}' | awk '{$1=$1;print}'
+        //ccs-setprofile -r 0 "$TMPVAR"
+        char command[2000] = "TMPVAR=$(ccs-pstree | grep ";        
+        strcat(command, text->str); //pid
+        strcat(command, " | awk '{$1=$2=$3=$4=\"\"; print $0}' | awk '{$1=$1;print}'); ccs-setprofile -r 2 \"$TMPVAR\"");
+
+		printf("Executing: %s\n",command);
+        system(command);
+
+        g_string_free(text, TRUE);
+	} else {g_string_free(text, TRUE);}
+
+}
+
+static void on_menuTomoyoBlock_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	if (Mwd.last_popup_column == NULL)
+		return;
+
+	int columns[] = { MVC_PID };
+	GString *text;
+	text = get_selected_lines_column_text_4copy(columns, 1);
+	if ((text != NULL) && (strcmp(text->str,"")))
+	{
+        //ccs-pstree | grep 20583 | awk '{$1=$2=$3=$4=""; print $0}' | awk '{$1=$1;print}'
+        //ccs-setprofile -r 0 "$TMPVAR"
+        char command[2000] = "TMPVAR=$(ccs-pstree | grep ";        
+        strcat(command, text->str); //pid
+        strcat(command, " | awk '{$1=$2=$3=$4=\"\"; print $0}' | awk '{$1=$1;print}'); ccs-setprofile -r 8 \"$TMPVAR\"");
+
+		printf("Executing: %s\n",command);
+        system(command);
+        
+        g_string_free(text, TRUE);
+	} else {g_string_free(text, TRUE);}
+}
+
+static void on_menuTomoyoAsk_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	if (Mwd.last_popup_column == NULL)
+		return;
+
+	int columns[] = { MVC_PID };
+	GString *text;
+	text = get_selected_lines_column_text_4copy(columns, 1);
+	if ((text != NULL) && (strcmp(text->str,"")))
+	{
+        //ccs-pstree | grep 20583 | awk '{$1=$2=$3=$4=""; print $0}' | awk '{$1=$1;print}'
+        //ccs-setprofile -r 0 "$TMPVAR"
+        char command[2000] = "TMPVAR=$(ccs-pstree | grep ";        
+        strcat(command, text->str); //pid
+        strcat(command, " | awk '{$1=$2=$3=$4=\"\"; print $0}' | awk '{$1=$1;print}'); ccs-setprofile -r 0 \"$TMPVAR\"");
+
+		printf("Executing: %s\n",command);
+        system(command);
+        
+        g_string_free(text, TRUE);
+	} else {g_string_free(text, TRUE);}
+}
+
 static void on_menuCopyColumn_activate (GtkMenuItem *menuItem, gpointer userdata)
 {
 	if (Mwd.last_popup_column == NULL)
@@ -2228,11 +2346,11 @@ static void show_popup_menu (int button, gboolean selecting, GtkTreeViewColumn *
 	if (popup_column != NULL)
 	{
 		const char * column_title = gtk_tree_view_column_get_title(popup_column);
-		char *menu_text = g_strdup_printf(_("Copy by '%s'"), column_title);
+		char *menu_text = g_strdup_printf(_("Copy '%s'"), column_title);
 		set_menuitem_label(copyColumnMenu, menu_text);
 		g_free(menu_text);
 	}else
-		set_menuitem_label(copyColumnMenu, _("Copy by 'Column'"));
+		set_menuitem_label(copyColumnMenu, _("Copy 'Column'"));
 	
 	gtk_widget_set_sensitive(GTK_WIDGET(copyColumnMenu), item_selected && (popup_column!=NULL));
 	gtk_widget_set_sensitive(glade_xml_get_widget(GladeXml, "popupCopyLine"), item_selected);
@@ -2416,8 +2534,12 @@ static void on_menuFilter_toggled (GtkCheckMenuItem *checkmenuitem, gpointer use
 {
 	GtkWidget *filterHBox;
 	filterHBox = GTK_WIDGET(glade_xml_get_widget (GladeXml, "hboxFilter"));
-	
-	Mwd.filtering = checkmenuitem->active;
+
+    Mwd.filtering = checkmenuitem->active;
+
+    GtkToggleToolButton *toggle_tool_button;
+	toggle_tool_button = GTK_TOGGLE_TOOL_BUTTON(glade_xml_get_widget(GladeXml, "tbtnFilter"));
+	gtk_toggle_tool_button_set_active(toggle_tool_button, checkmenuitem->active);
 	
 	if (checkmenuitem->active)
 	{
@@ -2431,7 +2553,14 @@ static void on_menuFilter_toggled (GtkCheckMenuItem *checkmenuitem, gpointer use
 		clear_filter();
 		gtk_widget_hide(filterHBox);		
 	}
+}
 
+static void on_tbtnFilter_clicked (GtkToolButton *toolbutton, gpointer user_data)
+{
+	GtkCheckMenuItem *menuItem;
+	GtkToggleToolButton *toggle_tool_button = GTK_TOGGLE_TOOL_BUTTON(toolbutton);
+	menuItem = GTK_CHECK_MENU_ITEM(glade_xml_get_widget(GladeXml, "menuFilter"));
+	gtk_check_menu_item_set_active(menuItem, gtk_toggle_tool_button_get_active(toggle_tool_button));
 }
 
 gboolean on_window_configure_event (GtkWidget *widget, GdkEventConfigure *event, gpointer user_data)
@@ -2472,12 +2601,18 @@ static void connect_signals (GtkWidget *window)
 	glade_xml_signal_connect(GladeXml, "on_tbtnAutoRefresh_clicked", G_CALLBACK(&on_tbtnAutoRefresh_clicked));
 	glade_xml_signal_connect(GladeXml, "on_tbtnEstConnections_clicked", G_CALLBACK(&on_tbtnEstConnections_clicked));
 	glade_xml_signal_connect(GladeXml, "on_tbtnCommands_clicked", G_CALLBACK(&on_tbtnCommands_clicked));
+	glade_xml_signal_connect(GladeXml, "on_tbtnFilter_clicked", G_CALLBACK(&on_tbtnFilter_clicked));
 	glade_xml_signal_connect(GladeXml, "on_tbtnClrConnections_clicked", G_CALLBACK(&on_tbtnClrConnections_clicked));
 	glade_xml_signal_connect(GladeXml, "on_menuSave_activate", G_CALLBACK(&on_menuSave_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuSaveAs_activate", G_CALLBACK(&on_menuSaveAs_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuAdminMode_activate", G_CALLBACK(&on_menuAdminMode_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuQuit_activate", G_CALLBACK(&on_menuQuit_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopyColumn_activate", G_CALLBACK(&on_menuCopyColumn_activate));
+	glade_xml_signal_connect(GladeXml, "on_menuDisconnect_activate", G_CALLBACK(&on_menuDisconnect_activate));
+	glade_xml_signal_connect(GladeXml, "on_menuTomoyoAsk_activate", G_CALLBACK(&on_menuTomoyoAsk_activate));
+	glade_xml_signal_connect(GladeXml, "on_menuTomoyoAllow_activate", G_CALLBACK(&on_menuTomoyoAllow_activate));
+	glade_xml_signal_connect(GladeXml, "on_menuTomoyoBlock_activate", G_CALLBACK(&on_menuTomoyoBlock_activate));
+	glade_xml_signal_connect(GladeXml, "on_menuKill_activate", G_CALLBACK(&on_menuKill_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopy_activate", G_CALLBACK(&on_menuCopy_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopyAddress_activate", G_CALLBACK(&on_menuCopyAddress_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopyHost_activate", G_CALLBACK(&on_menuCopyHost_activate));

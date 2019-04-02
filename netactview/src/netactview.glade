@@ -432,9 +432,23 @@
               </packing>
             </child>
             <child>
+              <widget class="GtkToggleToolButton" id="tbtnFilter">
+                <property name="visible">True</property>
+                <property name="tooltip" translatable="no">Display filter bar</property>
+                <property name="label" translatable="no">Filter</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-find</property>
+                <signal name="clicked" handler="on_tbtnFilter_clicked"/>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <widget class="GtkToggleToolButton" id="tbtnCommands">
                 <property name="visible">True</property>
-                <property name="tooltip" translatable="no">Display command line</property>
+                <property name="tooltip" translatable="no">Hide command line</property>
                 <property name="label" translatable="no">Commands</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-index</property>
@@ -583,7 +597,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="max_length">60000</property>
-                <property name="width_request">250</property>
+                <property name="width_request">1000</property>
                 <signal name="changed" handler="on_filter_changed"/>
               </widget>
               <packing>
@@ -777,7 +791,7 @@ v1.2.4 Intika - &lt;intika@librefox.org&gt;</property>
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
     <child>
       <widget class="GtkImageMenuItem" id="popupCopyColumn">
-        <property name="label" translatable="yes">Copy by 'Column'</property>
+        <property name="label" translatable="yes">Copy 'Column'</property>
         <property name="visible">True</property>
         <property name="tooltip" translatable="yes">Copy selection for current column</property>
         <property name="use_stock">False</property>
@@ -838,27 +852,156 @@ v1.2.4 Intika - &lt;intika@librefox.org&gt;</property>
         </child>
       </widget>
     </child>
+
     <child>
       <widget class="GtkSeparatorMenuItem" id="menuiSeparatePopupFilter">
         <property name="visible">True</property>
       </widget>
     </child>
+
     <child>
-      <widget class="GtkMenuItem" id="popupFilterIn">
+      <widget class="GtkImageMenuItem" id="popupTomoyoAllow">
         <property name="visible">True</property>
-        <property name="tooltip" translatable="yes">Filter on selection by column</property>
-        <property name="label" translatable="yes">Filter In</property>
-        <signal name="activate" handler="on_menuFilterIn_activate"/>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="no">Require Tomoyo (Set profile to 2)</property>
+        <property name="label" translatable="no">Tomoyo : Allow Network (Process)</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuTomoyoAllow_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image8">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-yes</property>
+          </widget>
+        </child>
       </widget>
     </child>
+
     <child>
-      <widget class="GtkMenuItem" id="popupFilterOut">
+      <widget class="GtkImageMenuItem" id="popupTomoyoBlock">
         <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="no">Require Tomoyo (Set profile to 8)</property>
+        <property name="label" translatable="no">Tomoyo : Block Network (Process)</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuTomoyoBlock_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image8">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-close</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkImageMenuItem" id="popupTomoyoAsk">
+        <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="no">Require Tomoyo (Set profile to 0)</property>
+        <property name="label" translatable="no">Tomoyo : Ask Permission (Process)</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuTomoyoAsk_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image8">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-zoom-fit</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="menuiSeparatePopupFilter">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkImageMenuItem" id="popupFilterIn">
+        <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="yes">Filter on selection by column</property>
+        <property name="label" translatable="yes">Filter In</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuFilterIn_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image10">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-find</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkImageMenuItem" id="popupFilterOut">
+        <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
         <property name="tooltip" translatable="yes">Filter on Not selection by column</property>
         <property name="label" translatable="yes">Filter Out</property>
         <property name="use_underline">True</property>
         <signal name="activate" handler="on_menuFilterOut_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image11">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-find</property>
+          </widget>
+        </child>
       </widget>
     </child>
+
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="menuiSeparatePopupFilter">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkImageMenuItem" id="popupKill">
+        <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="no">Force terminate process</property>
+        <property name="label" translatable="no">Kill process</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuKill_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image9">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-close</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkSeparatorMenuItem" id="menuiSeparatePopupFilter">
+        <property name="visible">True</property>
+      </widget>
+    </child>
+
+    <child>
+      <widget class="GtkImageMenuItem" id="popupDisconnect">
+        <property name="visible">True</property>
+        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="tooltip" translatable="no">This need a delay don't abuse it (require root, lsof, gdb, cut and tail)</property>
+        <property name="label" translatable="no">Disconnect all process connections</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_menuDisconnect_activate"/>
+        <child internal-child="image">
+          <widget class="GtkImage" id="menu-item-image8">
+            <property name="visible">True</property>
+            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+            <property name="stock">gtk-clear</property>
+          </widget>
+        </child>
+      </widget>
+    </child>
+
   </widget>
 </glade-interface>
