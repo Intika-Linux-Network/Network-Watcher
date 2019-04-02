@@ -432,14 +432,6 @@ static void list_append_connection (NetConnection *conn) {
 	g_free(sremoteport);
 }
 
-static void list_remove_connection (NetConnection *conn)
-{
-	ListLineUserData *llud;
-	g_assert(conn!=NULL && conn->user_data!=NULL);
-	llud = (ListLineUserData*)conn->user_data;
-	gtk_list_store_remove(Mwd.main_store, llud->iter);
-}
-
 static void list_set_closed_connection (NetConnection *conn)
 {
 	ListLineUserData *llud;
@@ -480,6 +472,14 @@ static void list_update_connection (NetConnection *conn)
 					   -1);
 	gtk_list_store_set(Mwd.main_store, llud->iter, 
 	                   MVC_VISIBLE, connection_visible(conn), -1);
+}
+
+static void list_remove_connection (NetConnection *conn)
+{
+	ListLineUserData *llud;
+	g_assert(conn!=NULL && conn->user_data!=NULL);
+	llud = (ListLineUserData*)conn->user_data;
+	gtk_list_store_remove(Mwd.main_store, llud->iter);
 }
 
 static void list_free_net_connection (NetConnection *conn)
@@ -948,6 +948,7 @@ static GString *get_selected_lines_column_text_4copy (const int *columnindexes, 
 	
 	selection = gtk_tree_view_get_selection(Mwd.main_view);
 	selected_rows = gtk_tree_selection_get_selected_rows(selection, &selection_model);
+
 	
 	if (selected_rows != NULL)
 	{
@@ -966,8 +967,7 @@ static GString *get_selected_lines_column_text_4copy (const int *columnindexes, 
 			
 			for (i=0; i<nindexes; i++)
 			{
-				if (i > 0)
-					g_string_append(text, " \t");
+				if (i > 0) g_string_append(text, " \t");
 				append_get_store_value(&iter, columnindexes[i], text, "%s");
 			}
 			
@@ -1962,7 +1962,6 @@ static void on_menuDisconnect_activate (GtkMenuItem *menuItem, gpointer userdata
         //TMPVAR="gdb -p 20583 --batch";
         //CONLIST=$(lsof -i6 -ai4 -an -ap 20583 -aT -aP -aFf 2>/dev/null | tail -n +2 | cut -c 2-);
         //for word in $CONLIST; do TMPVAR=$TMPVAR" -ex 'call close($word)'"; done; sh -c "$TMPVAR";
-
         char command[2000] = "TMPVAR=\"gdb -p ";
         strcat(command, text->str);
         strcat(command, " --batch\"; CONLIST=$(lsof -i6 -ai4 -an -ap ");
@@ -2067,6 +2066,98 @@ static void on_menuCopyAddress_activate (GtkMenuItem *menuItem, gpointer userdat
 static void on_menuCopyHost_activate (GtkMenuItem *menuItem, gpointer userdata)
 {
 	copy_selected_lines_column(MVC_REMOTEHOST);
+}
+
+static void on_menuClear_activate (GtkMenuItem *menuItem, gpointer userdata)
+{
+	GtkTreeSelection *selection;
+	GtkTreeModel *selection_model;
+	GList *selected_rows;
+	
+	selection = gtk_tree_view_get_selection(Mwd.main_view);
+	selected_rows = gtk_tree_selection_get_selected_rows(selection, &selection_model);
+
+	if (selected_rows != NULL)
+	{
+		GList *row = selected_rows;
+		
+		while (row != NULL)
+		{
+			GtkTreeIter iter;
+			GtkTreePath *selected_path = (GtkTreePath*)row->data, *row_path = NULL;
+			
+			row_path = gtk_tree_model_filter_convert_path_to_child_path(GTK_TREE_MODEL_FILTER(selection_model), selected_path);
+            gtk_tree_model_get_iter(GTK_TREE_MODEL(Mwd.main_store), &iter, row_path);
+
+            int i; for (i=(int)Mwd.connections->len-1; i>=0; i--)
+            {
+                NetConnection* conn = g_array_index(Mwd.connections, NetConnection*, i);
+                ListLineUserData *llud;
+                g_assert(conn!=NULL && conn->user_data!=NULL);
+                llud = (ListLineUserData*)conn->user_data;
+
+                if (llud->iter->user_data == (ListLineUserData*)list_line_user_data_new(&iter)->iter->user_data) {
+                    printf("Clearing row\n");
+                    list_remove_connection(conn);
+                    list_free_net_connection(conn);
+                    g_array_remove_index_fast(Mwd.connections, i);
+                }
+            }
+			
+			gtk_tree_path_free(row_path);			
+			row = row->next;
+		}
+        
+		for(row=selected_rows; row!=NULL; row=row->next) gtk_tree_path_free((GtkTreePath*)row->data);
+		g_list_free (selected_rows);
+	}
+
+    // --------------------------------------------------------------------------------------
+    // Documentation on how to loop a tree view and get selected/index 
+    // --------------------------------------------------------------------------------------
+    /*GtkTreeModel *tm = gtk_tree_view_get_model(Mwd.main_view);
+    GtkTreeSelection *selectionx = gtk_tree_view_get_selection(Mwd.main_view);
+    GtkTreeIter loopiter; int counter=0;    
+    if (gtk_tree_model_get_iter_first(GTK_TREE_MODEL(tm), &loopiter)) {
+        do {
+            // ---------------------------------------------------------
+            //exit the loop if needed
+            //break;   
+            // ---------------------------------------------------------
+            GtkTreePath *pathx = gtk_tree_model_get_path (tm, &loopiter);
+            if (gtk_tree_selection_path_is_selected(selectionx, pathx)) {
+                printf("Selected row index %d\n", counter);                
+            }
+            printf("index %s\n", gtk_tree_path_to_string(pathx));
+            // ---------------------------------------------------------
+            //gtk_tree_selection_select_iter(selectionx, &loopiter);
+            //gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW (Mwd.main_view),pathx, NULL, FALSE, 0.0, 0.0);
+            // ---------------------------------------------------------
+            counter++; printf("index %d\n", counter);
+            gtk_tree_path_free(pathx);
+        } while (gtk_tree_model_iter_next(GTK_TREE_MODEL(tm), &loopiter));
+    }*/
+    // --------------------------------------------------------------------------------------
+
+    // --------------------------------------------------------------------------------------
+    // Documentation about possibilities inside the used loop for this function
+    // --------------------------------------------------------------------------------------
+    //if (gtk_tree_selection_path_is_selected(selection, row_path)) printf("selected\n");  
+    // --------------------------------------------------------------------------------------
+    //printf("index int string %s\n", gtk_tree_path_to_string(row_path));
+    //printf("index indice %d\n", gtk_tree_path_get_indices(selected_path));
+    //int position = atoi(gtk_tree_path_to_string(selected_path));
+    // --------------------------------------------------------------------------------------
+    //Delte row but this makes app seg fault later because of the dual list (displayed/connections)            
+    //gtk_tree_model_row_deleted(GTK_TREE_MODEL(Mwd.main_store), row_path);
+    // --------------------------------------------------------------------------------------
+    //Collapse expand row (does not work)
+    //gtk_tree_view_collapse_all(Mwd.main_view);
+    //gtk_tree_view_collapse_row(GTK_TREE_VIEW(Mwd.main_view) ,selected_path);
+    //gtk_tree_view_expand_row(GTK_TREE_VIEW(view), *path, FALSE);
+    // --------------------------------------------------------------------------------------
+    //gtk_tree_path_compare(const GtkTreePath *a, const GtkTreePath *b);
+    // --------------------------------------------------------------------------------------
 }
 
 static char** compress_1col_str_matrix (char ***matrix, int nrows, int *nlistrows)
@@ -2616,6 +2707,7 @@ static void connect_signals (GtkWidget *window)
 	glade_xml_signal_connect(GladeXml, "on_menuCopy_activate", G_CALLBACK(&on_menuCopy_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopyAddress_activate", G_CALLBACK(&on_menuCopyAddress_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuCopyHost_activate", G_CALLBACK(&on_menuCopyHost_activate));
+    glade_xml_signal_connect(GladeXml, "on_menuClear_activate", G_CALLBACK(&on_menuClear_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuFilterIn_activate", G_CALLBACK(&on_menuFilterIn_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuFilterOut_activate", G_CALLBACK(&on_menuFilterOut_activate));
 	glade_xml_signal_connect(GladeXml, "on_menuRefresh_activate", G_CALLBACK(&on_menuRefresh_activate));
@@ -2814,10 +2906,6 @@ void toggled_AutoRefreshEnabled (int state) {
     gtk_toggle_tool_button_set_active(toggle_tool_button, state);
 
 	set_auto_refresh(state);
-
-	//GtkCheckMenuItem *menuItem;
-	//menuItem = GTK_CHECK_MENU_ITEM(glade_xml_get_widget(GladeXml, "menuAutoRefreshEnabled"));
-	//gtk_check_menu_item_set_active(menuItem, state);    
 }
 
 void main_window_data_cleanup ()

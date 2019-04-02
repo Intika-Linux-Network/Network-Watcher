@@ -88,7 +88,8 @@ static void showHide(struct tray_menu *item) {
 static void quitCB(struct tray_menu *item) {
     (void)item;
     tray_exit();
-    exit(0);
+    gtk_widget_destroy(window);
+    //exit(0); //this kill the app and does not save filter
 }
 
 static struct tray tray = {
@@ -110,12 +111,11 @@ static void on_aboutdialog_email_activated(GtkAboutDialog *about, const gchar *u
     g_string_free(s, TRUE);
 }
 
-int interval=0;
-
+/*int interval=0;
 static gboolean resetCounter(gpointer data){
     interval=0;
     return TRUE;
-}
+}*/
 
 static gboolean timeout_func(gpointer data){
     //printf("Update tray icon\n");
@@ -172,7 +172,7 @@ int main(int argc, char *argv[]) {
         nactv_net_init();
 
         window = main_window_create();
-        gtk_widget_show(window);
+        //gtk_widget_show(window);
         g_signal_connect(window, "delete_event", G_CALLBACK(gtk_widget_hide_on_delete), NULL);
         
         toggled_AutoRefreshEnabled(1);
